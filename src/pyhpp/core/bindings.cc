@@ -39,6 +39,8 @@ BOOST_PYTHON_MODULE(bindings) {
   pyhpp::core::exposeConstraint();
   pyhpp::core::exposeReports();
   pyhpp::core::exposeSteeringMethod();
+  pyhpp::core::exposeNode();
+  pyhpp::core::exposeRoadmap();
 
   // Expose main abstract classes
   pyhpp::core::exposePath();

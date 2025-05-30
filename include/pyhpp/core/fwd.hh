@@ -34,6 +34,9 @@ void exposeReports();
 
 void exposeSteeringMethod();
 
+void exposeNode();
+void exposeRoadmap();
+
 void exposePath();
 void exposePathOptimizer();
 void exposePathProjector();

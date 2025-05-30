@@ -88,6 +88,8 @@ add_python_library(
 add_python_library(
   pyhpp/core
   FILES
+  pyhpp/core/node.cc
+  pyhpp/core/roadmap.cc
   pyhpp/core/config-validation.cc
   pyhpp/core/configuration-shooter.cc
   pyhpp/core/constraint.cc
