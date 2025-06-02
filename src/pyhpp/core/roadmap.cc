@@ -28,18 +28,18 @@ namespace core {
 using namespace hpp::core;
 
 struct RWrapper {
-  static NodePtr_t addNodeAndEdges(Roadmap& roadmap, const ConfigurationIn_t from, ConfigurationIn_t to, const PathPtr_t path) {
+  static void addNodeAndEdges(Roadmap& roadmap, const ConfigurationIn_t from, ConfigurationIn_t to, const PathPtr_t path) {
     NodePtr_t nodeFrom = roadmap.addNode(from);
-    return roadmap.addNodeAndEdges(nodeFrom, to, path);
+    roadmap.addNodeAndEdges(nodeFrom, to, path);
   }
 
-  static NodePtr_t addNodeAndEdge(Roadmap& roadmap, const ConfigurationIn_t from, ConfigurationIn_t to, const PathPtr_t path) {
+  static void addNodeAndEdge(Roadmap& roadmap, const ConfigurationIn_t from, ConfigurationIn_t to, const PathPtr_t path) {
     NodePtr_t nodeFrom = roadmap.addNode(from);
-    return roadmap.addNodeAndEdge(nodeFrom, to, path);
+    roadmap.addNodeAndEdge(nodeFrom, to, path);
   }
 
-  static NodePtr_t addNode(Roadmap& roadmap, const ConfigurationIn_t config) {
-    return roadmap.addNode(config);
+  static void addNode(Roadmap& roadmap, const ConfigurationIn_t config) {
+    roadmap.addNode(config);
   }
 
   static void addEdge(Roadmap& roadmap, const NodePtr_t &n1, const NodePtr_t &n2, const PathPtr_t &path) {
@@ -47,8 +47,8 @@ struct RWrapper {
     return;
   }
 
-  static NodePtr_t nearestNode1(Roadmap& roadmap, ConfigurationIn_t configuration, value_type &minDistance, bool reverse) {
-    return roadmap.nearestNode(configuration, minDistance, reverse);
+  static const Configuration_t& nearestNode1(Roadmap& roadmap, ConfigurationIn_t configuration, value_type &minDistance, bool reverse) {
+    return roadmap.nearestNode(configuration, minDistance, reverse)->configuration();
   }
   static NodePtr_t nearestNode2(Roadmap& roadmap, ConfigurationIn_t configuration, value_type &minDistance) {
     return roadmap.nearestNode(configuration, minDistance);
