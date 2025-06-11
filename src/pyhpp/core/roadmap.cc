@@ -42,22 +42,32 @@ struct RWrapper {
     roadmap.addNode(config);
   }
 
-  static void addEdge(Roadmap& roadmap, const NodePtr_t &n1, const NodePtr_t &n2, const PathPtr_t &path) {
-    roadmap.addEdge(n1, n2, path);
+  static void addEdge(Roadmap& roadmap, const ConfigurationIn_t from, ConfigurationIn_t to, const PathPtr_t &path) {
+    NodePtr_t nodeFrom = roadmap.addNode(from);
+    NodePtr_t nodeTo = roadmap.addNode(to);
+    roadmap.addEdge(nodeFrom, nodeTo, path);
     return;
   }
 
-  static const Configuration_t& nearestNode1(Roadmap& roadmap, ConfigurationIn_t configuration, value_type &minDistance, bool reverse) {
-    return roadmap.nearestNode(configuration, minDistance, reverse)->configuration();
+  static boost::python::tuple nearestNode1(Roadmap& roadmap, ConfigurationIn_t configuration, bool reverse) {
+    double minDistance;
+    NodePtr_t node = roadmap.nearestNode(configuration, minDistance, reverse);
+    return boost::python::make_tuple(node->configuration(), minDistance);
   }
-  static NodePtr_t nearestNode2(Roadmap& roadmap, ConfigurationIn_t configuration, value_type &minDistance) {
-    return roadmap.nearestNode(configuration, minDistance);
+  static boost::python::tuple nearestNode2(Roadmap& roadmap, ConfigurationIn_t configuration) {
+    double minDistance;
+    NodePtr_t node = roadmap.nearestNode(configuration, minDistance);
+    return boost::python::make_tuple(node->configuration(), minDistance);
   }
-  static NodePtr_t nearestNode3(Roadmap& roadmap, ConfigurationIn_t configuration, const ConnectedComponentPtr_t &connectedComponent, value_type &minDistance, bool reverse) {
-    return roadmap.nearestNode(configuration, connectedComponent, minDistance, reverse);
+  static boost::python::tuple nearestNode3(Roadmap& roadmap, ConfigurationIn_t configuration, const ConnectedComponentPtr_t &connectedComponent, bool reverse) {
+    double minDistance;
+    NodePtr_t node = roadmap.nearestNode(configuration, connectedComponent, minDistance, reverse);
+    return boost::python::make_tuple(node->configuration(), minDistance);
   }
-  static NodePtr_t nearestNode4(Roadmap& roadmap, ConfigurationIn_t configuration, const ConnectedComponentPtr_t &connectedComponent, value_type &minDistance) {
-    return roadmap.nearestNode(configuration, connectedComponent, minDistance);
+  static boost::python::tuple nearestNode4(Roadmap& roadmap, ConfigurationIn_t configuration, const ConnectedComponentPtr_t &connectedComponent) {
+    double minDistance;
+    NodePtr_t node = roadmap.nearestNode(configuration, connectedComponent, minDistance);
+    return boost::python::make_tuple(node->configuration(), minDistance);
   }
 
   static Nodes_t nearestNodes1(Roadmap& roadmap, ConfigurationIn_t configuration, size_type k) {
@@ -75,6 +85,17 @@ struct RWrapper {
     return roadmap.initNode();
   }
 
+  static int numberConnectedComponents(Roadmap& roadmap) {
+    return roadmap.connectedComponents().size();
+  }
+
+  static ConnectedComponentPtr_t getConnectedComponent(Roadmap& roadmap, int connectedComponentId) {
+     ConnectedComponents_t::const_iterator itcc =
+          roadmap.connectedComponents().begin();
+      std::advance(itcc, connectedComponentId);
+    return *itcc;
+  }
+
   // static void cost1(Roadmap& roadmap, const path::CostPtr_t &cost) {
   //   roadmap.cost(cost);
   //   return;
@@ -82,19 +103,19 @@ struct RWrapper {
   // static path::CostPtr_t cost2(Roadmap& roadmap) {
   //   return roadmap.cost();
   // }
-
 };
 
 void exposeRoadmap() {
 
   class_<Roadmap, RoadmapPtr_t, boost::noncopyable>("Roadmap", no_init)
     .def("create", &Roadmap::create).staticmethod("create")
+    .def("__str__", &to_str<Roadmap>)
     .PYHPP_DEFINE_METHOD(Roadmap, clear)
     .PYHPP_DEFINE_METHOD1(RWrapper, addNode, return_value_policy<reference_existing_object>())
-    .def("nearestNode", &RWrapper::nearestNode1, return_value_policy<reference_existing_object>())
-    .def("nearestNode", &RWrapper::nearestNode2, return_value_policy<reference_existing_object>())
-    .def("nearestNode", &RWrapper::nearestNode3, return_value_policy<reference_existing_object>())
-    .def("nearestNode", &RWrapper::nearestNode4, return_value_policy<reference_existing_object>())
+    .def("nearestNode", &RWrapper::nearestNode1)
+    .def("nearestNode", &RWrapper::nearestNode2)
+    .def("nearestNode", &RWrapper::nearestNode3)
+    .def("nearestNode", &RWrapper::nearestNode4)
     .def("nearestNodes", &RWrapper::nearestNodes1)
     .def("nearestNodes", &RWrapper::nearestNodes2)
     .PYHPP_DEFINE_METHOD(Roadmap, nodesWithinBall)
@@ -104,7 +125,7 @@ void exposeRoadmap() {
     .PYHPP_DEFINE_METHOD(Roadmap, addEdges)
     .def("merge", static_cast<void (Roadmap::*)(const RoadmapPtr_t&)>(&Roadmap::merge))
     .PYHPP_DEFINE_METHOD(Roadmap, insertPathVector)
-    .PYHPP_DEFINE_METHOD1(Roadmap, addGoalNode, return_value_policy<manage_new_object>())
+    .PYHPP_DEFINE_METHOD1(Roadmap, addGoalNode, return_value_policy<reference_existing_object>())
     .PYHPP_DEFINE_METHOD(Roadmap, resetGoalNodes)
     .PYHPP_DEFINE_METHOD(Roadmap, pathExists)
     .PYHPP_DEFINE_METHOD_INTERNAL_REF(Roadmap, nodes)
@@ -113,6 +134,8 @@ void exposeRoadmap() {
     .PYHPP_DEFINE_METHOD_INTERNAL_REF(Roadmap, goalNodes)
     .PYHPP_DEFINE_METHOD_INTERNAL_REF(Roadmap, connectedComponents)
     .PYHPP_DEFINE_METHOD_INTERNAL_REF(Roadmap, distance)
+    .def("numberConnectedComponents", &RWrapper::numberConnectedComponents)
+    .def("getConnectedComponent", &RWrapper::getConnectedComponent)
     // .def("cost", &RWrapper::cost1)
     // .def("cost", &RWrapper::cost2, return_value_policy<reference_existing_object>())
 

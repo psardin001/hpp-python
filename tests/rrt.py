@@ -1,98 +1,99 @@
-from motion_planner import MotionPlanner
 from pyhpp.gepetto import Viewer
 import numpy as np
 from pinocchio import SE3
-from pyhpp.pinocchio import Device, urdf
-from pyhpp.core import Problem
+from pyhpp.pinocchio import Device
+from pyhpp.core import Problem, Roadmap, WeighedDistance, path
 
+# Robot configuration
 urdfFilename = "package://example-robot-data/robots/ur_description/urdf/ur5_joint_limited_robot.urdf"
 srdfFilename = "package://example-robot-data/robots/ur_description/srdf/ur5_joint_limited_robot.srdf"
 
+# Initialize robot and viewer
 robot = Device.create("ur5")
-
 viewer = Viewer("construction_set", robot)
 
+# Add robot and obstacles to scene
 viewer.addURDFToScene(0, "r0", "anchor", urdfFilename, srdfFilename, SE3.Identity())
+viewer.addURDFObstacleToScene("/home/psardin/devel/nix-hpp/src/hpp-practicals/urdf/ur_benchmark/table.urdf", "table")
+viewer.addURDFObstacleToScene("/home/psardin/devel/nix-hpp/src/hpp-practicals/urdf/ur_benchmark/wall.urdf", "wall")
+viewer.addURDFObstacleToScene("/home/psardin/devel/nix-hpp/src/hpp-practicals/urdf/ur_benchmark/obstacles.urdf", "obstacles")
 
-viewer.addURDFObstacleToScene("package://hpp_practicals/urdf/ur_benchmark/obstacles.urdf", "obstacles")
-viewer.addURDFObstacleToScene("package://hpp_practicals/urdf/ur_benchmark/table.urdf", "table")
-viewer.addURDFObstacleToScene("package://hpp_practicals/urdf/ur_benchmark/wall.urdf", "wall")
+# Define initial and goal configurations
+qInit = np.array([0.2, -1.57, -1.8, 0, 0.8, 0])
+qGoal = np.array([1.57, -1.57, -1.8, 0, 0.8, 0])
+viewer.applyConfiguration(qInit)
 
-q2 = np.array([0.2, -1.57, -1.8, 0, 0.8, 0])
+# Setup problem and RRT components
+problem = Problem.create(robot)
+configurationShooter = problem.configurationShooter()
+steer = problem.steeringMethod()
+weighedDistance = WeighedDistance.create(robot)
+distance = weighedDistance.asDistancePtr_t()
 
-viewer.applyConfiguration(q2)
+# Initialize roadmap
+roadmap = Roadmap.create(distance, robot)
+roadmap.initNode(qInit)
+roadmap.addGoalNode(qGoal)
 
+# RRT algorithm parameters
+finished = False
+iter = 0
+maxIter = 1000
 
-# vf.loadObstacleModel(
-#     "package://hpp_practicals/urdf/ur_benchmark/obstacles.urdf", "obstacles"
-# )
-# vf.loadObstacleModel("package://hpp_practicals/urdf/ur_benchmark/table.urdf", "table")
-# vf.loadObstacleModel("package://hpp_practicals/urdf/ur_benchmark/wall.urdf", "wall")
+# Main RRT loop
+while not finished and iter < maxIter:
+    # Extend phase
+    newNodes = []
+    newEdges = []
+    q_rand = configurationShooter.shoot()
+    iter += 1
+    
+    # Try to extend from each connected component
+    for i in range(roadmap.numberConnectedComponents()):
+        cc = roadmap.getConnectedComponent(i)
+        q_near, d = roadmap.nearestNode(q_rand, cc)
+        directpath = steer(q_near, q_rand)
+        res, validPart, report = problem.pathValidation().validate(directpath, False)
+        
+        if res:
+            q_new = q_rand
+        else:
+            q_new = validPart.end()
+            
+        newNodes.append(q_new)
+        newEdges.append((q_near, q_new, validPart))
+    
+    # Add new nodes to roadmap
+    for q in newNodes:
+        roadmap.addNode(q)
+    
+    # Add new edges to roadmap
+    for q1, q2, path in newEdges:
+        roadmap.addEdge(q1, q2, path)
+    
+    # Connect phase
+    for q_new in newNodes:
+        for i in range(roadmap.numberConnectedComponents()):
+            cc = roadmap.getConnectedComponent(i)
+            q_near, d = roadmap.nearestNode(q_new, cc)
+            
+            if (q_near != q_new).all():
+                directpath = steer(q_new, q_near)
+                res, validPart, report = problem.pathValidation().validate(directpath, False)
+                
+                if res:
+                    roadmap.addEdge(q_new, q_near, validPart)
+                    break
+    
+    # Check if problem is solved
+    nbCC = roadmap.numberConnectedComponents()
+    if nbCC == 1:
+        print('Problem solved!')
+        finished = True
 
-# q1 = [0, -1.57, 1.57, 0, 0, 0]
-# q2 = [0.2, -1.57, -1.8, 0, 0.8, 0]
-# q3 = [1.57, -1.57, -1.8, 0, 0.8, 0]
-
-# ps.setInitialConfig(q2)
-# ps.addGoalConfig(q3)
-
-
-# m = MotionPlanner(robot, ps)
-# pathId = m.solveBiRRT(maxIter=1000)
-
-#############RRT############
-#def solveBiRRT(self, maxIter=float("inf")):
-#    #cpp#
-#    initProblem();
-#    pathPlanner_->startSolve();
-#    pathPlanner_->tryConnectInitAndGoals();
-#    roadmap_->pathExists();
-#    #cpp#
-#    finished = False
-#    iter = 0
-#    ps = self.ps
-#    while True:
-#        # RRT begin
-#        # Extend
-#        newNodes = list()
-#        newEdges = list()
-#        q_rand = robot.shootRandomConfig()
-#        for i in range(ps.numberConnectedComponents()):
-#            q_near, d = ps.getNearestConfig(q_rand,i)
-#            res, pid, msg = ps.directPath(q_near, q_rand, True)
-#            if res:
-#                q_new = q_rand
-#            else:
-#                q_new = ps.configAtParam(pid, ps.pathLength(pid))
-#            newNodes.append(q_new)
-#            newEdges.append((q_near, q_new, pid))
-#        for q in newNodes:
-#            ps.addConfigToRoadmap(q)
-#        for q1, q2, pid in newEdges:
-#            ps.addEdgeToRoadmap(q1, q2, pid, True)
-#        # connect
-#        for q_new in newNodes:
-#            for i in range(ps.numberConnectedComponents()):
-#                q_near, d = ps.getNearestConfig(q_new, i)
-#                # if q_near == q_new, q_new is in this connected component
-#                if q_near != q_new:
-#                    res, pid, msg = ps.directPath(q_new, q_near, True)
-#                    if res:
-#                        ps.addEdgeToRoadmap(q_new, q_near, pid, True)
-#                        print('finished')
-#                        break
-#        # RRT end
-#        # Check if the problem is solved.
-#        nbCC = self.ps.numberConnectedComponents()
-#        if nbCC == 1:
-#            # Problem solved
-#            finished = True
-#            break
-#        iter = iter + 1
-#        if iter > maxIter:
-#            break
-#    if finished:
-#        self.ps.finishSolveStepByStep()
-#        return self.ps.numberPaths() - 1
-#
-#
+# Compute and display final path
+if finished:
+    path = problem.target().computePath(roadmap)
+    viewer.displayPath(path)
+else:
+    print(f"Maximum iterations ({maxIter}) reached without finding solution")
