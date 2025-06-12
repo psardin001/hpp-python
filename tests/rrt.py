@@ -14,9 +14,10 @@ viewer = Viewer("construction_set", robot)
 
 # Add robot and obstacles to scene
 viewer.addURDFToScene(0, "r0", "anchor", urdfFilename, srdfFilename, SE3.Identity())
-viewer.addURDFObstacleToScene("/home/psardin/devel/nix-hpp/src/hpp-practicals/urdf/ur_benchmark/table.urdf", "table")
-viewer.addURDFObstacleToScene("/home/psardin/devel/nix-hpp/src/hpp-practicals/urdf/ur_benchmark/wall.urdf", "wall")
-viewer.addURDFObstacleToScene("/home/psardin/devel/nix-hpp/src/hpp-practicals/urdf/ur_benchmark/obstacles.urdf", "obstacles")
+
+viewer.addURDFObstacleToScene("package://hpp_practicals/urdf/ur_benchmark/table.urdf", "table")
+viewer.addURDFObstacleToScene("package://hpp_practicals/urdf/ur_benchmark/wall.urdf", "wall")
+viewer.addURDFObstacleToScene("package://hpp_practicals/urdf/ur_benchmark/obstacles.urdf", "obstacles")
 
 # Define initial and goal configurations
 qInit = np.array([0.2, -1.57, -1.8, 0, 0.8, 0])
