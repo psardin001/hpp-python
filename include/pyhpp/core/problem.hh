@@ -1,7 +1,7 @@
 // problem.hh
 //
 // Copyright (c) 2025, CNRS
-// Authors: <Your Name>
+// Authors: Paul Sardin
 //
 // This file is part of hpp-python
 // hpp-python is free software—you can redistribute it
@@ -51,7 +51,6 @@ typedef hpp::core::DistancePtr_t DistancePtr_t;
 struct Problem {
   hpp::core::ProblemPtr_t obj;
 
-  Problem(const hpp::core::ProblemPtr_t& object);
   Problem(const DevicePtr_t& robot);
 
   // wrapped methods

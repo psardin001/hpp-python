@@ -20,9 +20,11 @@
 #include <hpp/manipulation/device.hh>
 #include <hpp/manipulation/handle.hh>
 #include <hpp/pinocchio/gripper.hh>
+#include <hpp/pinocchio/device.hh>
 #include <pinocchio/multibody/data.hpp>
 #include <pinocchio/multibody/geometry.hpp>
 #include <pinocchio/spatial/se3.hpp>
+#include <pyhpp/manipulation/fwd.hh>
 
 namespace pyhpp {
 namespace manipulation {
@@ -43,6 +45,8 @@ typedef hpp::pinocchio::Gripper Gripper;
 typedef hpp::pinocchio::Computation_t Computation_t;
 typedef hpp::manipulation::HandlePtr_t HandlePtr_t;
 typedef hpp::manipulation::Handle Handle;
+typedef hpp::manipulation::DevicePtr_t DevicePtr_t;
+typedef hpp::pinocchio::DevicePtr_t PinDevicePtr_t;
 
 // Wrapper class to hpp::manipulation::Device
 //
@@ -50,8 +54,8 @@ typedef hpp::manipulation::Handle Handle;
 // limitation, we create a wrapper class and bind this class with boost python
 // instead of the original class.
 struct Device {
-  hpp::manipulation::DevicePtr_t obj;
-  Device(const hpp::manipulation::DevicePtr_t& object);
+  DevicePtr_t obj;
+  Device(const DevicePtr_t& object);
   Device(const std::string& name);
   // Methods from hpp::pinocchio::Device
   const std::string& name() const;
@@ -70,6 +74,7 @@ struct Device {
   // Methods for hpp::manipulation::Device
   void setRobotRootPosition(const std::string& robotName,
                             const Transform3s& positionWRTParentJoint);
+  PinDevicePtr_t asPinDevice();
 };  // struct Device
 }  // namespace manipulation
 }  // namespace pyhpp

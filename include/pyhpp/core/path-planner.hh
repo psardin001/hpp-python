@@ -23,7 +23,7 @@
 #include <hpp/core/problem.hh>
 #include <hpp/core/roadmap.hh>
 
-#include "pyhpp/core/problem.hh"
+#include <pyhpp/core/problem.hh>
 
 namespace pyhpp {
 namespace core {
