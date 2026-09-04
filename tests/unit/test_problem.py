@@ -121,9 +121,7 @@ class TestProblemConstraintProjection(unittest.TestCase):
             [True, True, True, True, True, True],
         )
 
-        problem.addNumericalConstraintsToConfigProjector(
-            "test-projector", [constraint]
-        )
+        problem.addNumericalConstraintsToConfigProjector("test-projector", [constraint])
 
         projector = active_constraints.configProjector()
         self.assertIsNotNone(projector)
