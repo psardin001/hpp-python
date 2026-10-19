@@ -6,6 +6,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+- [CI] Upload the pyhpp package with its stubs
+
 ## [9.1.0] - 2026-10-13
 
 - [README] Rewrite
